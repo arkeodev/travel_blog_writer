@@ -1,8 +1,11 @@
+import json
 import re
 from types import SimpleNamespace
+from typing import Any, Dict
 
 from instructor import Mode, from_openai
 from openai import OpenAI
+from pydantic import ValidationError
 
 from config import Config
 from models.travel_destination import TravelDestination
@@ -28,15 +31,36 @@ class CustomLLama32VisionClient:
         # Transform the input messages to the format expected by the vision model
         new_messages = self._transform_messages(params["messages"])
         # Make an API call to the vision model
-        response = self.client.chat.completions.create(
-            model="accounts/fireworks/models/llama-v3p2-90b-vision-instruct",
-            messages=new_messages,
-            response_model=TravelDestination,  # Use a structured output model
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model="accounts/fireworks/models/llama-v3p2-90b-vision-instruct",
+                messages=new_messages,
+                response_model=TravelDestination,  # Use a structured output model
+            )
+            # Convert the response to the format expected by autogen
+            autogen_response = self._build_autogen_response(response)
+            return autogen_response
+        except ValidationError as e:
+            # If validation fails, return a default TravelDestination object
+            default_response = TravelDestination(
+                destination_name="Unknown", description="Unable to process the image."
+            )
+            return self._build_autogen_response(default_response)
 
-        # Convert the response to the format expected by autogen
-        autogen_response = self._build_autogen_response(response)
-        return autogen_response
+    def _build_autogen_response(self, response: TravelDestination) -> Dict[str, Any]:
+        """
+        Builds a response in the format expected by autogen.
+        """
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(response.dict(exclude_none=True)),
+                        "role": "assistant",
+                    }
+                }
+            ]
+        }
 
     def _transform_messages(self, messages):
         new_messages = []
@@ -56,20 +80,6 @@ class CustomLLama32VisionClient:
                     new_content.insert(0, {"type": "text", "text": text_content})
                 new_messages.append({"role": "user", "content": new_content})
         return new_messages
-
-    def _build_autogen_response(self, response):
-        # Create a SimpleNamespace object to mimic the structure of an autogen response
-        autogen_response = SimpleNamespace()
-        autogen_response.choices = []
-        autogen_response.model = "custom_llama32_vision"
-
-        choice = SimpleNamespace()
-        choice.message = SimpleNamespace()
-        # Convert the structured response to JSON string
-        choice.message.content = response.model_dump_json()
-        choice.message.function_call = None
-        autogen_response.choices.append(choice)
-        return autogen_response
 
     def message_retrieval(self, response):
         # Extract the content from each choice in the response
