@@ -6,6 +6,7 @@ from autogen import GroupChat, GroupChatManager
 from PIL import Image
 
 from constants import MAX_CHAT_ROUNDS
+from utils.image_utils import numpy_to_base64
 
 
 class AgentManager:
@@ -33,11 +34,7 @@ class AgentManager:
         # Check if the input is a numpy array (likely an image)
         if isinstance(image_data, np.ndarray):
             # Convert numpy array to base64 encoded image
-            img = Image.fromarray((image_data).astype(np.uint8))
-            buffered = io.BytesIO()
-            img.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-
+            img_str = numpy_to_base64(image_data)
             # Prepare the message with the encoded image
             message = f"""
             This is a picture of a famous destination.

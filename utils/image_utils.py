@@ -1,3 +1,5 @@
+import base64
+import io
 from io import BytesIO
 
 import numpy as np
@@ -11,6 +13,15 @@ USER_AGENT = "TravelBlogWriterApp/1.0 (https://github.com/arkeodev/travel_blog_w
 
 
 def fetch_image(url):
+    """
+    Fetch an image from a URL and return a PIL Image object.
+
+    Args:
+    url: The URL of the image to fetch.
+
+    Returns:
+    A PIL Image object.
+    """
     headers = {"User-Agent": USER_AGENT}
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -37,3 +48,21 @@ def resize_image(image_file):
     img_array = np.array(img_rgb)
 
     return img_array.astype(np.float32)
+
+
+def numpy_to_base64(image_data):
+    """
+    Convert a numpy array to a base64 encoded image.
+
+    Args:
+    image_data: A numpy array of shape (IMAGE_SIZE, IMAGE_SIZE, 3) with normalized pixel values.
+
+    Returns:
+    A base64 encoded image string.
+    """
+    img = Image.fromarray((image_data).astype(np.uint8))
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+
+    return img_str
