@@ -11,7 +11,7 @@ from agents.vision_assistant import VisionAssistant
 from config import Config
 from utils.agent_manager import AgentManager
 from utils.file_utils import save_uploaded_file
-from utils.image_utils import USER_AGENT, fetch_image, normalize_image
+from utils.image_utils import USER_AGENT, fetch_image, resize_image
 
 
 def main():
@@ -63,14 +63,14 @@ def main():
             image = Image.open(file_path)
             # Normalize the image
             with open(file_path, "rb") as image_file:
-                normalized_image = normalize_image(image_file)
+                normalized_image = resize_image(image_file)
     else:
         image_url = st.text_input("Enter the Image URL of the Travel Destination")
         if image_url:
             try:
                 image = fetch_image(image_url)
                 # Normalize the image
-                normalized_image = normalize_image(
+                normalized_image = resize_image(
                     BytesIO(
                         requests.get(
                             image_url, headers={"User-Agent": USER_AGENT}
