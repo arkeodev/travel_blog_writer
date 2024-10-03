@@ -70,3 +70,18 @@ class CustomLLama32VisionClient:
         choice.message.function_call = None
         autogen_response.choices.append(choice)
         return autogen_response
+
+    def message_retrieval(self, response):
+        # Extract the content from each choice in the response
+        choices = response.choices
+        return [choice.message.content for choice in choices]
+
+    def cost(self, response) -> float:
+        # Set a placeholder cost (0) for the response
+        response.cost = 0
+        return 0
+
+    @staticmethod
+    def get_usage(response):
+        # Return an empty dictionary for usage information
+        return {}
