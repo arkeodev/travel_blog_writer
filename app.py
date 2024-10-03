@@ -29,18 +29,19 @@ def main():
     if image_url:
         try:
             response = requests.get(image_url)
+            response.raise_for_status()  # Raise an exception for bad responses
             image = Image.open(BytesIO(response.content))
-            if image.format.lower() not in ["jpeg", "png", "ppm", "gif", "tiff", "bmp"]:
-                st.error(
-                    f"Unsupported image format: {image.format}. Please use JPEG, PNG, PPM, GIF, TIFF, or BMP."
-                )
+            
+            # Check if the image format is supported
+            if image.format.lower() not in ["jpeg", "png", "gif", "tiff", "bmp"]:
+                st.error(f"Unsupported image format: {image.format}. Please use JPEG, PNG, GIF, TIFF, or BMP.")
             else:
                 # Display the image in a 224x224 container
                 st.image(image, caption="Travel Destination", width=224)
-        except requests.exceptions.RequestException:
-            st.error("Failed to fetch the image. Please check the URL and try again.")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Failed to fetch the image: {e}")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"An error occurred while processing the image: {e}")
 
     if st.button("Generate Blog Post"):
         if not api_key:
@@ -52,18 +53,11 @@ def main():
                 try:
                     # Validate image URL and format
                     response = requests.get(image_url)
+                    response.raise_for_status()
                     image = Image.open(BytesIO(response.content))
-                    if image.format.lower() not in [
-                        "jpeg",
-                        "png",
-                        "ppm",
-                        "gif",
-                        "tiff",
-                        "bmp",
-                    ]:
-                        st.error(
-                            f"Unsupported image format: {image.format}. Please use JPEG, PNG, PPM, GIF, TIFF, or BMP."
-                        )
+                    
+                    if image.format.lower() not in ["jpeg", "png", "gif", "tiff", "bmp"]:
+                        st.error(f"Unsupported image format: {image.format}. Please use JPEG, PNG, GIF, TIFF, or BMP.")
                         st.stop()
 
                     user_proxy = UserProxyAgent()
@@ -85,10 +79,8 @@ def main():
                         blog_text = str(result)
 
                     st.markdown(blog_text)
-                except requests.exceptions.RequestException:
-                    st.error(
-                        "Failed to fetch the image. Please check the URL and try again."
-                    )
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Failed to fetch the image: {e}")
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
 
