@@ -10,6 +10,7 @@ from agents.vision_assistant import VisionAssistant
 from config import Config
 from constants import MAX_CHAT_ROUNDS
 from utils.agent_manager import AgentManager
+from utils.image_utils import fetch_image, USER_AGENT
 
 
 def main():
@@ -28,9 +29,7 @@ def main():
 
     if image_url:
         try:
-            response = requests.get(image_url)
-            response.raise_for_status()  # Raise an exception for bad responses
-            image = Image.open(BytesIO(response.content))
+            image = fetch_image(image_url)
             
             # Check if the image format is supported
             if image.format.lower() not in ["jpeg", "png", "gif", "tiff", "bmp"]:
@@ -52,9 +51,7 @@ def main():
             with st.spinner("Generating blog post..."):
                 try:
                     # Validate image URL and format
-                    response = requests.get(image_url)
-                    response.raise_for_status()
-                    image = Image.open(BytesIO(response.content))
+                    image = fetch_image(image_url)
                     
                     if image.format.lower() not in ["jpeg", "png", "gif", "tiff", "bmp"]:
                         st.error(f"Unsupported image format: {image.format}. Please use JPEG, PNG, GIF, TIFF, or BMP.")
