@@ -1,3 +1,7 @@
+import requests
+from io import BytesIO
+from PIL import Image
+
 # Define a custom User-Agent
 USER_AGENT = "TravelBlogWriterApp/1.0 (https://github.com/arkeodev/travel_blog_writer; arkeodev@gmail.com) Python/3.9"
 

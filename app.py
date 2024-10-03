@@ -1,14 +1,12 @@
-from io import BytesIO
-
-import requests
 import streamlit as st
+from io import BytesIO
+import requests  # Add this import
 from PIL import Image
 
 from agents.blog_assistant import BlogAssistant
 from agents.user_proxy_agent import UserProxyAgent
 from agents.vision_assistant import VisionAssistant
 from config import Config
-from constants import MAX_CHAT_ROUNDS
 from utils.agent_manager import AgentManager
 from utils.image_utils import fetch_image, USER_AGENT
 
