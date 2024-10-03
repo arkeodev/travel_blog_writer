@@ -13,7 +13,16 @@ from utils.agent_manager import AgentManager
 
 
 def main():
+    st.set_page_config(layout="wide")
     st.title("Travel Blog Writer App")
+
+    # Add sidebar for API key input
+    st.sidebar.title("Configuration")
+    api_key = st.sidebar.text_input("Enter Fireworks AI API Key", type="password")
+
+    # Update Config with the entered API key
+    if api_key:
+        Config.FIREWORKS_API_KEY = api_key
 
     image_url = st.text_input("Enter the Image URL of the Travel Destination")
 
@@ -34,7 +43,9 @@ def main():
             st.error(f"An error occurred: {e}")
 
     if st.button("Generate Blog Post"):
-        if not image_url:
+        if not api_key:
+            st.warning("Please enter your Fireworks AI API Key in the sidebar.")
+        elif not image_url:
             st.warning("Please enter an image URL.")
         else:
             with st.spinner("Generating blog post..."):

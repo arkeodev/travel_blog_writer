@@ -25,3 +25,4 @@ class BlogAssistant(AssistantAgent):
                 "cache_seed": None,
             },
         )
+

@@ -1,0 +1,7 @@
+streamlit
+pillow
+requests
+autogen
+instructor
+openai
+pydantic
