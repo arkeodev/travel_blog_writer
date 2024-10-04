@@ -25,18 +25,18 @@ class CustomLLama32VisionClient:
         )
 
     def create(self, params):
-        # Transform the input messages to the format expected by the vision model
-        new_messages = self._transform_messages(params["messages"])
-        # Make an API call to the vision model
-        response = self.client.chat.completions.create(
-            model="accounts/fireworks/models/llama-v3p2-90b-vision-instruct",
-            messages=new_messages,
-            response_model=TravelDestination,  # Use a structured output model
-        )
-
-        # Convert the response to the format expected by autogen
-        autogen_response = self._build_autogen_response(response)
-        return autogen_response
+        try:
+            new_messages = self._transform_messages(params["messages"])
+            response = self.client.chat.completions.create(
+                model="accounts/fireworks/models/llama-v3p2-90b-vision-instruct",
+                messages=new_messages,
+                response_model=TravelDestination,
+            )
+            autogen_response = self._build_autogen_response(response)
+            return autogen_response
+        except Exception as e:
+            print(f"Error in vision model processing: {str(e)}")
+            raise
 
     def _transform_messages(self, messages):
         new_messages = []
@@ -44,15 +44,23 @@ class CustomLLama32VisionClient:
             if message["role"] == "user":
                 new_content = []
                 text_content = message["content"]
-                # Extract image URLs from the message content
-                image_urls = re.findall(r"<url>(.*?)</url>", text_content)
-                for url in image_urls:
-                    # Add image URLs as separate content items
-                    new_content.append({"type": "image_url", "image_url": {"url": url}})
-                    # Remove the URL tags from the text content
-                    text_content = text_content.replace(f"<url>{url}</url>", "").strip()
+                # Extract image data from the message content
+                image_data = re.search(r"<image>(.*?)</image>", text_content, re.DOTALL)
+                if image_data:
+                    base64_image = image_data.group(1)
+                    new_content.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            },
+                        }
+                    )
+                    # Remove the image tags from the text content
+                    text_content = re.sub(
+                        r"<image>.*?</image>", "", text_content, flags=re.DOTALL
+                    ).strip()
                 if text_content:
-                    # Add remaining text content as the first item
                     new_content.insert(0, {"type": "text", "text": text_content})
                 new_messages.append({"role": "user", "content": new_content})
         return new_messages

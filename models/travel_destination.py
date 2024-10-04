@@ -9,6 +9,9 @@ class TravelDestination(BaseModel):
     """
 
     destination_name: str = Field(..., description="The name of the destination.")
+    confidence_score: float = Field(
+        ..., description="Confidence score of the identification (0-1)."
+    )
     attractions: Optional[List[str]] = Field(
         None, description="Attractions at the destination."
     )

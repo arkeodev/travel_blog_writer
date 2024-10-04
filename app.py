@@ -1,4 +1,5 @@
 import base64  # Add this import
+import json  # Add this import
 from io import BytesIO
 
 import requests  # Add this import
@@ -9,6 +10,7 @@ from agents.blog_assistant import BlogAssistant
 from agents.user_proxy_agent import UserProxyAgent
 from agents.vision_assistant import VisionAssistant
 from config import Config
+from models.travel_destination import TravelDestination  # Add this import
 from utils.agent_manager import AgentManager
 from utils.file_utils import save_uploaded_file
 from utils.image_utils import USER_AGENT, fetch_image, resize_image
@@ -105,20 +107,43 @@ def main():
                         blog_assistant=blog_assistant,
                     )
 
-                    # Use the normalized_image
                     result = manager.run(normalized_image)
 
-                    st.success("Blog post generated successfully!")
+                    # Extract the content from the vision_assistant's response
+                    vision_assistant_response = None
+                    for message in result:
+                        if message["speaker"] == "vision_assistant":
+                            vision_assistant_response = message["content"]
+                            break
 
-                    # Extract and display only the blog text in markdown format
-                    if hasattr(result, "summary"):
-                        blog_text = result.summary
-                    else:
-                        blog_text = str(result)
+                    if vision_assistant_response:
+                        # Parse the JSON string to a dictionary
+                        travel_data = json.loads(vision_assistant_response)
 
-                    st.markdown(blog_text)
+                        # Create TravelDestination instance
+                        travel_destination = TravelDestination(**travel_data)
+
+                        if (
+                            travel_destination.confidence_score < 0.7
+                        ):  # You can adjust this threshold
+                            st.warning(
+                                f"Low confidence in destination identification (score: {travel_destination.confidence_score}). Please try a different image."
+                            )
+                        else:
+                            st.success("Blog post generated successfully!")
+                            st.markdown(f"# {travel_destination.destination_name}")
+                            st.markdown(travel_destination.description)
+
+                            if travel_destination.attractions:
+                                st.markdown("## Attractions")
+                                for attraction in travel_destination.attractions:
+                                    st.markdown(f"- {attraction}")
+
+                            # Add similar sections for transportation, accommodation, and restaurants if needed
+
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+                    st.error(f"Result: {result}")  # Add this line for debugging
 
 
 if __name__ == "__main__":

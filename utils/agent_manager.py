@@ -6,7 +6,6 @@ from autogen import GroupChat, GroupChatManager
 from PIL import Image
 
 from constants import MAX_CHAT_ROUNDS
-from utils.image_utils import numpy_to_base64
 
 
 class AgentManager:
@@ -24,32 +23,27 @@ class AgentManager:
         """
         Runs the agent interaction to generate a blog post.
         """
-        # Import necessary libraries for image processing
-        import base64
-        import io
+        from utils.image_utils import encode_image
 
-        import numpy as np
-        from PIL import Image
+        # Encode the image data
+        base64_image = encode_image(image_data)
 
-        # Check if the input is a numpy array (likely an image)
-        if isinstance(image_data, np.ndarray):
-            # Convert numpy array to base64 encoded image
-            img_str = numpy_to_base64(image_data)
-            # Prepare the message with the encoded image
-            message = f"""
-            This is a picture of a famous destination.
-            Please figure out the destination name, attractions, transportation, accommodation, food, and description.
-            And then generate a blog post based on the given information.
-            <image>{img_str}</image>
-            """
-        else:
-            # If not a numpy array, assume it's a URL
-            message = f"""
-            This is a picture of a famous destination.
-            Please figure out the destination name, attractions, transportation, accommodation, food, and description.
-            And then generate a blog post based on the given information.
-            <url>{image_data}</url>
-            """
+        # Prepare the message with the encoded image
+        message = f"""
+        This is a picture of a specific travel destination.
+        Please analyze the image carefully and identify the exact location shown.
+        Do not default to any particular city or landmark.
+        Provide detailed observations about what you see in the image that led to your conclusion.
+        Then, based on the identified location, provide information about:
+        1. The destination name
+        2. Key attractions visible in the image or known to be in that location
+        3. Common transportation options for tourists
+        4. Types of accommodation available
+        5. Popular local food or restaurants
+        6. A brief description of the destination's significance or appeal
+
+        <image>{base64_image}</image>
+        """
 
         # Create a GroupChat instance with the three agents
         groupchat = GroupChat(

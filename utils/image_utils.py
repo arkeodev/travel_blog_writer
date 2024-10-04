@@ -50,19 +50,23 @@ def resize_image(image_file):
     return img_array.astype(np.float32)
 
 
-def numpy_to_base64(image_data):
+def encode_image(image_data):
     """
-    Convert a numpy array to a base64 encoded image.
+    Encode image data to base64.
 
     Args:
-    image_data: A numpy array of shape (IMAGE_SIZE, IMAGE_SIZE, 3) with normalized pixel values.
+    image_data: Either a file path (str) or a numpy array.
 
     Returns:
     A base64 encoded image string.
     """
-    img = Image.fromarray((image_data).astype(np.uint8))
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-
-    return img_str
+    if isinstance(image_data, str):
+        with open(image_data, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode("utf-8")
+    elif isinstance(image_data, np.ndarray):
+        img = Image.fromarray((image_data).astype(np.uint8))
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+    else:
+        raise ValueError("Unsupported image data type")

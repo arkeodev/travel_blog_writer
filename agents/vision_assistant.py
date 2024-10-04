@@ -17,7 +17,7 @@ class VisionAssistant(AssistantAgent):
         ]
         super().__init__(
             name="vision_assistant",
-            system_message="You are a multi-modal assistant that can generate structured outputs from images.",
+            system_message="You are a multi-modal assistant that can generate structured outputs from images. Always provide a confidence score with your identification.",
             llm_config={"config_list": config_list, "cache": None, "cache_seed": None},
         )
         self.register_model_client(model_client_cls=CustomLLama32VisionClient)
